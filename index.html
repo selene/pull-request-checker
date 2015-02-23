@@ -2,14 +2,32 @@
 <head>
   <title>PR Queue Checker</title>
   <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+  <style>
+    form div {
+      margin: 5px;
+    }
+    label {
+      display: inline-block;
+      width: 130px;
+    }
+    input[type=submit] {
+      padding: 5px 15px;
+      cursor:pointer;
+      border-radius: 5px;
+      width: 292px;
+    }
+    input[type=submit]#refresh {
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
 
   <h1>PR Queue Checker</h1>
   <form id="login">
-  <div>Github Username: <input type="text" id="name" /></div>
-  <div>Password: <input type="password" id="password" /></div>
-  <div><input type="submit" id="submit" /></div>
+    <div id="name_row"><label for="name">Github Username:</label> <input type="text" id="name" /></div>
+    <div id="password_row"><label for="password">Password:</label> <input type="password" id="password" /></div>
+    <div><input type="submit" id="submit" /><input type="submit" id="refresh" value="Refresh" style="display:none;" /></div>
   </form>
   <div id="results">
   </div>
@@ -23,6 +41,7 @@ window.onload = (function(){
     var credentials = btoa($('#name').val() + ":" + $('#password').val());
     var finished = 0;
     repos.forEach(function getRepoPulls(repoName) {
+      $('#results').html("Loading...")
       $.ajax({
         type: "GET",
         url: "https://api.github.com/repos/ThinkNear/" + repoName + "/pulls",
@@ -64,6 +83,10 @@ window.onload = (function(){
         resultHtml += "</ul></div>\n"
       }
       $("#results").html(resultHtml);
+      $('#name_row').hide();
+      $('#password_row').hide();
+      $('#submit').hide();
+      $('#refresh').show();
     }
 
     return false;
