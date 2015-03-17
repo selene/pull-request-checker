@@ -40,24 +40,29 @@
 
 <script type="text/javascript">
 window.onload = (function(){
+  var credentials;
+  var organization;
+  var orgRepos = [];
+  var verified = false;
+
+  function setAuthorizationHeader(xhr) {
+    $('#results').html("Loading...");
+    xhr.setRequestHeader("Authorization", "Basic " + credentials);
+  }
+
+  function loginFailed() {
+    $("#results").html("Login failed");
+  }
 
   $('#login').submit(function onLogin() {
     var userPulls = {};
-    var credentials = btoa($('#username').val() + ":" + $('#password').val());
     var finished = 0;
-    var organization = $('#organization').val();
-
-    function setAuthorizationHeader(xhr) {
-      $('#results').html("Loading...");
-      xhr.setRequestHeader("Authorization", "Basic " + credentials);
-    }
-
-    function loginFailed() {
-      $("#results").html("Login failed");
-    }
+    credentials = btoa($('#username').val() + ":" + $('#password').val());
+    organization = $('#organization').val();
 
     function checkMembership(data, statusText, response) {
       if (response.status == 204) {
+        verified = true;
         getRepos();
       } else {
         $("results").html("You don't belong to this organization");
@@ -71,12 +76,13 @@ window.onload = (function(){
         url: "https://api.github.com/orgs/" + organization + "/repos",
         dataType: "json",
         beforeSend: setAuthorizationHeader,
-        success: scrapeRepos
+        success: scrapeRepos,
+        error: loginFailed
       });
     }
 
     function scrapeRepos(repos) {
-      console.log(arguments);
+      orgRepos = repos;
       repos.forEach(function getRepoPulls(repo) {
         $.ajax({
           type: "GET",
@@ -99,19 +105,11 @@ window.onload = (function(){
             if (finished == repos.length) {
               onAllReposFinished(userPulls);
             }
-          }
+          },
+          error: loginFailed
         });
       });
     }
-
-    $.ajax({
-      type: "GET",
-      url: "https://api.github.com/orgs/" + organization + "/members/" + $('#username').val(),
-      dataType: 'json',
-      beforeSend: setAuthorizationHeader,
-      success: checkMembership,
-      error: loginFailed
-    });
 
     function onAllReposFinished(userPulls){
       var resultHtml = "";
@@ -129,6 +127,19 @@ window.onload = (function(){
       $('#credentials').hide();
       $('#submit').hide();
       $('#refresh').show();
+    }
+
+    if (!verified) {
+      $.ajax({
+        type: "GET",
+        url: "https://api.github.com/orgs/" + organization + "/members/" + $('#username').val(),
+        dataType: 'json',
+        beforeSend: setAuthorizationHeader,
+        success: checkMembership,
+        error: loginFailed
+      });
+    } else {
+      scrapeRepos(orgRepos);
     }
 
     return false;
