@@ -19,13 +19,20 @@
     input[type=submit]#refresh {
       font-size: 18px;
     }
+    #credentials {
+      margin: 0;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
   <h1>PR Queue Checker</h1>
   <form id="login">
-    <div id="name_row"><label for="username">Github Username:</label> <input type="text" id="username" name="username" /></div>
-    <div id="password_row"><label for="password">Password:</label> <input type="password" id="password" name="password" /></div>
+    <div id="credentials">
+      <div><label for="organization">Organization:</label> <input type="text" id="organization" name="organization" value="ThinkNear" /></div>
+      <div><label for="username">Github Username:</label> <input type="text" id="username" name="username" /></div>
+      <div><label for="password">Password:</label> <input type="password" id="password" name="password" /></div>
+    </div>
     <div><input type="submit" id="submit" /><input type="submit" id="refresh" value="Refresh" style="display:none;" /></div>
   </form>
   <div id="results">
@@ -36,36 +43,74 @@ window.onload = (function(){
 
   $('#login').submit(function onLogin() {
     var userPulls = {};
-    var repos = [/*fill in locally*/];
     var credentials = btoa($('#username').val() + ":" + $('#password').val());
     var finished = 0;
-    repos.forEach(function getRepoPulls(repoName) {
-      $('#results').html("Loading...")
+    var organization = $('#organization').val();
+
+    function setAuthorizationHeader(xhr) {
+      $('#results').html("Loading...");
+      xhr.setRequestHeader("Authorization", "Basic " + credentials);
+    }
+
+    function loginFailed() {
+      $("#results").html("Login failed");
+    }
+
+    function checkMembership(data, statusText, response) {
+      if (response.status == 204) {
+        getRepos();
+      } else {
+        $("results").html("You don't belong to this organization");
+      }
+    }
+
+    function getRepos() {
+      $('#results').html("Loading...");
       $.ajax({
         type: "GET",
-        url: "https://api.github.com/repos/ThinkNear/" + repoName + "/pulls",
-        dataType: 'json',
-        beforeSend: function(xhr) {
-          xhr.setRequestHeader("Authorization", "Basic " + credentials);
-        },
-        success: function(response) {
-          response.forEach(function groupUserPulls(pull) {
-            var assignee = pull.assignee;
-            if (!assignee) { assignee = {login: "[Unassigned]"} }
-            if (!userPulls[assignee.login]) { userPulls[assignee.login] = [] }
-              userPulls[assignee.login].push({
-                url: pull.html_url,
-                name: pull.title,
-                repo: pull.base.repo.name
-              });
-          });
-
-          ++finished;
-          if (finished == repos.length) {
-            onAllReposFinished(userPulls);
-          }
-        }
+        url: "https://api.github.com/orgs/" + organization + "/repos",
+        dataType: "json",
+        beforeSend: setAuthorizationHeader,
+        success: scrapeRepos
       });
+    }
+
+    function scrapeRepos(repos) {
+      console.log(arguments);
+      repos.forEach(function getRepoPulls(repo) {
+        $.ajax({
+          type: "GET",
+          url: "https://api.github.com/repos/" + organization + "/" + repo.name + "/pulls",
+          dataType: 'json',
+          beforeSend: setAuthorizationHeader,
+          success: function(response) {
+            response.forEach(function groupUserPulls(pull) {
+              var assignee = pull.assignee;
+              if (!assignee) { assignee = {login: "[Unassigned]"} }
+              if (!userPulls[assignee.login]) { userPulls[assignee.login] = [] }
+                userPulls[assignee.login].push({
+                  url: pull.html_url,
+                  name: pull.title,
+                  repo: pull.base.repo.name
+                });
+            });
+
+            ++finished;
+            if (finished == repos.length) {
+              onAllReposFinished(userPulls);
+            }
+          }
+        });
+      });
+    }
+
+    $.ajax({
+      type: "GET",
+      url: "https://api.github.com/orgs/" + organization + "/members/" + $('#username').val(),
+      dataType: 'json',
+      beforeSend: setAuthorizationHeader,
+      success: checkMembership,
+      error: loginFailed
     });
 
     function onAllReposFinished(userPulls){
@@ -81,8 +126,7 @@ window.onload = (function(){
         resultHtml += "</ul></div>\n"
       }
       $("#results").html(resultHtml);
-      $('#name_row').hide();
-      $('#password_row').hide();
+      $('#credentials').hide();
       $('#submit').hide();
       $('#refresh').show();
     }
