@@ -1,0 +1,4 @@
+GitHub PR Queue Checker
+
+Pass in your credentials and organization, and it will scrape that organization's repositories for pull requests.
+It will show you pull requests grouped by assignee so you can check your queue and others'.
