@@ -1,0 +1,75 @@
+<html>
+<head>
+  <title>PR Queue Checker</title>
+  <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+</head>
+<body>
+
+  <h1>PR Queue Checker</h1>
+  <form id="login">
+  <div>Github Username: <input type="text" id="name" /></div>
+  <div>Password: <input type="password" id="password" /></div>
+  <div><input type="submit" id="submit" /></div>
+  </form>
+  <div id="results">
+  </div>
+
+<script type="text/javascript">
+window.onload = (function(){
+
+  $('#login').submit(function onLogin() {
+    var userPulls = {};
+    var repos = [/*fill in locally*/];
+    var credentials = btoa($('#name').val() + ":" + $('#password').val());
+    var finished = 0;
+    repos.forEach(function getRepoPulls(repoName) {
+      $.ajax({
+        type: "GET",
+        url: "https://api.github.com/repos/ThinkNear/" + repoName + "/pulls",
+        dataType: 'json',
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader("Authorization", "Basic " + credentials);
+        },
+        success: function(response) {
+          response.forEach(function groupUserPulls(pull) {
+            var assignee = pull.assignee;
+            if (!assignee) { assignee = {login: "[Unassigned]"} }
+            if (!userPulls[assignee.login]) { userPulls[assignee.login] = [] }
+              userPulls[assignee.login].push({
+                url: pull.html_url,
+                name: pull.title,
+                repo: pull.base.repo.name
+              });
+          });
+
+          ++finished;
+          if (finished == repos.length) {
+            onAllReposFinished(userPulls);
+          }
+        }
+      });
+
+    });
+
+    function onAllReposFinished(userPulls){
+      var resultHtml = "";
+      for (var u in userPulls) {
+        pulls = userPulls[u];
+        resultHtml += "<div>\n<h3>" + u + "</h3>\n<ul>"
+        for (var i = 0; i < pulls.length; i++) {
+          var pull = pulls[i];
+          resultHtml += "<li><a href='" + pull.url + "'>" + pull.name + "</a> (" + pull.repo + ")</li>"
+        }
+
+        resultHtml += "</ul></div>\n"
+      }
+      $("#results").html(resultHtml);
+    }
+
+    return false;
+  });
+});
+
+</script>
+</body>
+</html>
