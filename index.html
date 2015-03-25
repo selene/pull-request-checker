@@ -58,8 +58,10 @@ window.onload = (function(){
     xhr.setRequestHeader("Authorization", "Basic " + credentials);
   }
 
-  function loginFailed() {
+  function loginFailed(arguments) {
     $("#results").html("Login failed");
+    console.log("login failed");
+    console.log(arguments);
   }
 
   $('#login').submit(function onLogin() {
@@ -77,20 +79,38 @@ window.onload = (function(){
       }
     }
 
-    function getRepos() {
+    function getRepos(page) {
+      page = page || 1;
       $('#results').html("Loading...");
       $.ajax({
         type: "GET",
-        url: "https://api.github.com/orgs/" + organization + "/repos",
+        url: "https://api.github.com/orgs/" + organization + "/repos?page=" + page,
         dataType: "json",
         beforeSend: setAuthorizationHeader,
-        success: scrapeRepos,
+        success: checkForLastPage,
         error: loginFailed
       });
     }
 
+    function checkForLastPage(results, status, response) {
+      var link = response.getResponseHeader("Link");
+      var links, nextPage;
+
+      orgRepos = orgRepos.concat(results);
+      if (link && link.contains('rel="next"')) {
+        links = link.split(",");
+        for(var l in links) {
+          if (links[l].contains('rel="next"')) {
+            nextPage = links[l].match(/page=(\d+)/)[1]
+            getRepos(nextPage);
+          }
+        }
+      } else {
+        scrapeRepos(orgRepos);
+      }
+    }
+
     function scrapeRepos(repos) {
-      orgRepos = repos;
       repos.forEach(function getRepoPulls(repo) {
         $.ajax({
           type: "GET",
