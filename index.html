@@ -137,31 +137,36 @@ window.onload = (function(){
     }
 
     function scrapeRepos(repos) {
+      finished = 0;
       repos.forEach(function getRepoPulls(repo) {
-        $.ajax({
-          type: "GET",
-          url: "https://api.github.com/repos/" + organization + "/" + repo.name + "/pulls",
-          dataType: 'json',
-          beforeSend: setAuthorizationHeader,
-          success: function(response) {
-            response.forEach(function groupUserPulls(pull) {
-              var assignee = pull.assignee;
-              if (!assignee) { assignee = {login: "[Unassigned]"} }
-              if (!userPulls[assignee.login]) { userPulls[assignee.login] = [] }
-                userPulls[assignee.login].push({
-                  url: pull.html_url,
-                  name: pull.title,
-                  repo: pull.base.repo.name
-                });
-            });
+        if (repo.open_issues_count == 0) {
+          ++finished;
+        } else {
+          $.ajax({
+            type: "GET",
+            url: "https://api.github.com/repos/" + organization + "/" + repo.name + "/pulls",
+            dataType: 'json',
+            beforeSend: setAuthorizationHeader,
+            success: function(response) {
+              response.forEach(function groupUserPulls(pull) {
+                var assignee = pull.assignee;
+                if (!assignee) { assignee = {login: "[Unassigned]"} }
+                if (!userPulls[assignee.login]) { userPulls[assignee.login] = [] }
+                  userPulls[assignee.login].push({
+                    url: pull.html_url,
+                    name: pull.title,
+                    repo: pull.base.repo.name
+                  });
+              });
 
-            ++finished;
-            if (finished == repos.length) {
-              onAllReposFinished(userPulls);
-            }
-          },
-          error: loginFailed
-        });
+              ++finished;
+              if (finished == repos.length) {
+                onAllReposFinished(userPulls);
+              }
+            },
+            error: loginFailed
+          });
+        }
       });
     }
 
