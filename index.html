@@ -123,10 +123,11 @@ window.onload = (function(){
       var links, nextPage;
 
       orgRepos = orgRepos.concat(results);
-      if (link && link.contains('rel="next"')) {
+      console.log(link);
+      if (link && link.indexOf('rel="next"') != -1) {
         links = link.split(",");
         for(var l in links) {
-          if (links[l].contains('rel="next"')) {
+          if (links[l].indexOf('rel="next"') != -1) {
             nextPage = links[l].match(/page=(\d+)/)[1]
             getRepos(nextPage);
           }
