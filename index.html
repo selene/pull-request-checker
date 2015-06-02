@@ -49,6 +49,7 @@
 
 <script type="text/javascript">
 window.onload = (function(){
+  var username;
   var credentials;
   var organization;
   var orgRepos = [];
@@ -90,9 +91,11 @@ window.onload = (function(){
     $("#results").html("Login failed");
   }
 
-  $('#login').submit(function onLogin() {
+  $('#login').submit(function loginAndScrapeRepos() {
     var userPulls = {};
+    var authoredPulls = [];
     var finished = 0;
+    username = $('#username').val();
     credentials = btoa($('#username').val() + ":" + $('#password').val());
     organization = $('#organization').val();
 
@@ -151,13 +154,16 @@ window.onload = (function(){
             success: function(response) {
               response.forEach(function groupUserPulls(pull) {
                 var assignee = pull.assignee;
+                var pullData = {
+                  url: pull.html_url,
+                  name: pull.title,
+                  repo: pull.base.repo.name,
+                  author: pull.user.login
+                };
                 if (!assignee) { assignee = {login: "[Unassigned]"} }
                 if (!userPulls[assignee.login]) { userPulls[assignee.login] = [] }
-                  userPulls[assignee.login].push({
-                    url: pull.html_url,
-                    name: pull.title,
-                    repo: pull.base.repo.name
-                  });
+                if (pull.user.login == username) { authoredPulls.push(pullData); }
+                userPulls[assignee.login].push(pullData);
               });
 
               ++finished;
@@ -173,12 +179,30 @@ window.onload = (function(){
 
     function onAllReposFinished(userPulls){
       var resultHtml = "";
+      var i, u, pulls;
+      resultHtml += "<h2>" + username + "</h2>\n<h3>Your PRs</h3>\n<ul>\n";
+      for (i = 0; i < authoredPulls.length; i++) {
+        resultHtml += formatPull(authoredPulls[i]);
+      }
+      resultHtml += "</ul>\n<h3>Your Queue</h3>\n"
+      pulls = userPulls[username];
+      if (pulls) {
+        resultHtml += "<ul>\n";
+        for (i = 0; i < pulls.length; i++) {
+          resultHtml += formatPull(pulls[i]);
+        }
+        resultHtml += "</ul>\n";
+      } else {
+        resultHtml += "<p>Empty queue, good job!</p>\n";
+      }
+
+      resultHtml += "<h2>Everyone Else</h2>\n";
       for (var u in userPulls) {
+        if (u == username) { continue; }
         pulls = userPulls[u];
         resultHtml += "<div>\n<h3>" + u + "</h3>\n<ul>"
-        for (var i = 0; i < pulls.length; i++) {
-          var pull = pulls[i];
-          resultHtml += "<li><a href='" + pull.url + "'>" + pull.name + "</a> (" + pull.repo + ")</li>"
+        for (i = 0; i < pulls.length; i++) {
+          resultHtml += formatPull(pulls[i]);
         }
 
         resultHtml += "</ul></div>\n"
@@ -187,6 +211,10 @@ window.onload = (function(){
       $('#credentials').hide();
       $('#submit').hide();
       $('#refresh').show();
+    }
+
+    function formatPull(pull) {
+      return "<li><a href='" + pull.url + "'>" + pull.name + "</a> (" + pull.repo + ")</li>";
     }
 
     if (!verified) {
