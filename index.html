@@ -94,6 +94,7 @@ window.onload = (function(){
   $('#login').submit(function loginAndScrapeRepos() {
     var userPulls = {};
     var authoredPulls = [];
+    var assignedPulls = [];
     var finished = 0;
     username = $('#username').val();
     credentials = btoa($('#username').val() + ":" + $('#password').val());
@@ -160,10 +161,16 @@ window.onload = (function(){
                   repo: pull.base.repo.name,
                   author: pull.user.login
                 };
-                if (!assignee) { assignee = {login: "[Unassigned]"} }
-                if (!userPulls[assignee.login]) { userPulls[assignee.login] = [] }
-                if (pull.user.login == username) { authoredPulls.push(pullData); }
-                userPulls[assignee.login].push(pullData);
+                if (!assignee) { assignee = {login: "[Unassigned]"}; }
+                if (assignee.login.toLowerCase() == username.toLowerCase()) {
+                  assignedPulls.push(pullData)
+                } else {
+                  if (!userPulls[assignee.login]) { userPulls[assignee.login] = []; }
+                  userPulls[assignee.login].push(pullData);
+                }
+                if (pull.user.login.toLowerCase() == username.toLowerCase()) {
+                  authoredPulls.push(pullData);
+                }
               });
 
               ++finished;
@@ -185,11 +192,10 @@ window.onload = (function(){
         resultHtml += formatPull(authoredPulls[i]);
       }
       resultHtml += "</ul>\n<h3>Your Queue</h3>\n"
-      pulls = userPulls[username];
-      if (pulls) {
+      if (assignedPulls) {
         resultHtml += "<ul>\n";
-        for (i = 0; i < pulls.length; i++) {
-          resultHtml += formatPull(pulls[i]);
+        for (i = 0; i < assignedPulls.length; i++) {
+          resultHtml += formatPull(assignedPulls[i]);
         }
         resultHtml += "</ul>\n";
       } else {
@@ -198,7 +204,6 @@ window.onload = (function(){
 
       resultHtml += "<h2>Everyone Else</h2>\n";
       for (var u in userPulls) {
-        if (u == username) { continue; }
         pulls = userPulls[u];
         resultHtml += "<div>\n<h3>" + u + "</h3>\n<ul>"
         for (i = 0; i < pulls.length; i++) {
