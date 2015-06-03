@@ -192,7 +192,7 @@ window.onload = (function(){
         resultHtml += formatPull(authoredPulls[i]);
       }
       resultHtml += "</ul>\n<h3>Your Queue</h3>\n"
-      if (assignedPulls) {
+      if (assignedPulls.length > 0) {
         resultHtml += "<ul>\n";
         for (i = 0; i < assignedPulls.length; i++) {
           resultHtml += formatPull(assignedPulls[i]);
