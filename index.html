@@ -186,7 +186,7 @@ window.onload = (function(){
 
     function onAllReposFinished(userPulls){
       var resultHtml = "";
-      var i, u, pulls;
+      var i, u, name, pulls, usernames;
       resultHtml += "<h2>" + username + "</h2>\n<h3>Your PRs</h3>\n<ul>\n";
       for (i = 0; i < authoredPulls.length; i++) {
         resultHtml += formatPull(authoredPulls[i]);
@@ -203,9 +203,11 @@ window.onload = (function(){
       }
 
       resultHtml += "<h2>Everyone Else</h2>\n";
-      for (var u in userPulls) {
-        pulls = userPulls[u];
-        resultHtml += "<div>\n<h3>" + u + "</h3>\n<ul>"
+      usernames = Object.keys(userPulls).sort();
+      for (u in usernames) {
+        name = usernames[u];
+        pulls = userPulls[name];
+        resultHtml += "<div>\n<h3>" + name + "</h3>\n<ul>"
         for (i = 0; i < pulls.length; i++) {
           resultHtml += formatPull(pulls[i]);
         }
