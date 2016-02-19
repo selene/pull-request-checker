@@ -188,12 +188,13 @@ window.onload = (function(){
     function onAllReposFinished(userPulls){
       var resultHtml = "";
       var i, u, name, showAssignee, pulls, usernames;
-      resultHtml += "<h2>" + username + "</h2>\n<h3>Your PRs</h3>\n<ul>\n";
+      resultHtml += "<h2>" + username + "</h2>\n"
+      resultHtml += "<h3>Your PRs (" + authoredPulls.length +")</h3>\n<ul>\n";
       for (i = 0; i < authoredPulls.length; i++) {
         showAssignee = (authoredPulls[i].assignee.login == "[Unassigned]");
         resultHtml += formatPull(authoredPulls[i], showAssignee);
       }
-      resultHtml += "</ul>\n<h3>Your Queue</h3>\n"
+      resultHtml += "</ul>\n<h3>Your Queue (" + assignedPulls.length + ")</h3>\n"
       if (assignedPulls.length > 0) {
         resultHtml += "<ul>\n";
         for (i = 0; i < assignedPulls.length; i++) {
@@ -209,7 +210,7 @@ window.onload = (function(){
       for (u in usernames) {
         name = usernames[u];
         pulls = userPulls[name];
-        resultHtml += "<div>\n<h3>" + name + "</h3>\n<ul>"
+        resultHtml += "<div>\n<h3>" + name + " (" + pulls.length + ")</h3>\n<ul>"
         for (i = 0; i < pulls.length; i++) {
           resultHtml += formatPull(pulls[i]);
         }
