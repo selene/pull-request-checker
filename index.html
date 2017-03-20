@@ -132,7 +132,6 @@ window.onload = (function(){
       var links, nextPage;
 
       orgRepos = orgRepos.concat(results);
-      console.log(link);
       if (link && link.indexOf('rel="next"') != -1) {
         links = link.split(",");
         for(var l in links) {
@@ -168,6 +167,7 @@ window.onload = (function(){
                   repo: pull.base.repo.name,
                   author: pull.user.login,
                   assignees: assignees,
+                  updated_at: new Date(pull.updated_at),
                 };
                 if (assignees.length == 0) {
                   assignees.push("[Unassigned]");
@@ -245,8 +245,21 @@ window.onload = (function(){
       };
     }
 
+    function formatDate(date) {
+      console.log(date);
+      var datePart = date.toLocaleDateString("en-US", {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        timeZoneName: 'short',
+      });
+      return "<small>" + datePart + "</small>";
+    }
+
     function formatPull(pull, showAssignee) {
-      var formatted = "<li><a href='" + pull.url + "'>" + pull.name + "</a> (" + pull.repo + ")";
+      var formatted = "<li><a href='" + pull.url + "'>" + pull.name + "</a> (" + pull.repo + ") " + formatDate(pull.updated_at);
       if (showAssignee) {
         formatted += " - " + pull.assignees.join(", ");
       }
