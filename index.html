@@ -38,7 +38,11 @@
       <div><label for="username">Github Username:</label> <input type="text" id="username" name="username" /></div>
       <div><label for="password">Password:</label> <input type="password" id="password" name="password" /></div>
     </div>
-    <div><input type="submit" id="submit" /><input type="submit" id="refresh" value="Refresh" style="display:none;" /></div>
+    <div>
+      <input type="submit" id="submit" />
+      <input type="submit" id="refresh" value="Refresh" style="display:none;" />
+      <span id="lastChecked"></span>
+    </div>
   </form>
   <div id="results">
   </div>
@@ -59,6 +63,7 @@ window.onload = (function(){
   var verified = false;
   var loadedOn = new Date();
   var hasSecondaryAssignees = false;
+  var lastPRCheck = null;
 
   $('#footnote').hide();
   $('#update-indicator').hide();
@@ -206,6 +211,8 @@ window.onload = (function(){
     function onAllReposFinished(userPulls){
       var resultHtml = "";
       var i, u, name, pulls, usernames;
+      lastPRCheck = new Date();
+
       resultHtml += "<h2>" + username + "</h2>\n"
       resultHtml += "<h3>Your PRs (" + authoredPulls.length +")</h3>\n<ul>\n";
       for (i = 0; i < authoredPulls.length; i++) {
@@ -238,6 +245,7 @@ window.onload = (function(){
       $('#credentials').hide();
       $('#submit').hide();
       $('#refresh').show();
+      $('#lastChecked').html('Last checked: ' + formatDate(lastPRCheck));
       if (hasSecondaryAssignees) {
         $('#footnote').show();
       } else {
@@ -246,7 +254,6 @@ window.onload = (function(){
     }
 
     function formatDate(date) {
-      console.log(date);
       var datePart = date.toLocaleDateString("en-US", {
         weekday: 'short',
         month: 'short',
