@@ -2,6 +2,7 @@
 <head>
   <title>PR Queue Checker</title>
   <script src="jquery-1.11.2.min.js"></script>
+  <script src="lodash.min.js"></script>
   <style>
     form div {
       margin: 5px;
@@ -165,7 +166,7 @@ window.onload = (function(){
             success: function(response) {
               response.forEach(function groupUserPulls(pull) {
                 var mainAssignee = pull.assignee ? pull.assignee.login : "[Unassigned]";
-                var assignees = pull.assignees.map(function(a) { return a.login; });
+                var assignees = _.uniq(pull.assignees.concat(pull.requested_reviewers).map(function(a) { return a.login; }));
                 var pullData = {
                   url: pull.html_url,
                   name: pull.title,
