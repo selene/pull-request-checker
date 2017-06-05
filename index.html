@@ -270,6 +270,8 @@ window.onload = (function(){
       var formatted = "<li><a href='" + pull.url + "'>" + pull.name + "</a> (" + pull.repo + ") " + formatDate(pull.updated_at);
       if (showAssignee) {
         formatted += " - " + pull.assignees.join(", ");
+      } else {
+        formatted += " - " + pull.author;
       }
       formatted += "</li>";
       return formatted;
