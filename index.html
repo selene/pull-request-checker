@@ -172,7 +172,7 @@ window.onload = (function(){
                 var assignees = _.uniq(pull.assignees.concat(pull.requested_reviewers).map(function(a) { return a.login; }));
                 var pullData = {
                   url: pull.html_url,
-                  name: pull.title,
+                  name: pull.title.replace('<', '&lt;').replace('>', '&gt;'),
                   repo: pull.base.repo.name,
                   author: pull.user.login,
                   assignees: assignees,
