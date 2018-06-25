@@ -20,6 +20,9 @@
     input[type=submit]#refresh {
       font-size: 18px;
     }
+    table {
+      border-collapse: collapse;
+    }
     #credentials {
       margin: 0;
       padding: 0;
@@ -31,6 +34,15 @@
     }
     .date__old {
       color: darkorange;
+    }
+/*    .row__name td {
+      border-top: 1px solid gray;
+    }*/
+    .oddish td {
+      background-color: white;
+    }
+    .evenish td {
+      background-color: #ddd;
     }
   </style>
 </head>
@@ -252,17 +264,31 @@ window.onload = (function(){
       }
 
       resultHtml += "<h2>Everyone Else</h2>\n";
+      resultHtml += "<table>\n<thead>\n<tr>\n" +
+        "<th>Reviewer</th>\n<th>PR Name</th>\n<th>Updated</th>\n<th>Author</th>\n" +
+        "</tr>\n</thead>\n<tbody>\n";
       usernames = Object.keys(userPulls).sort();
+      var stripe = 0;
       for (u in usernames) {
         name = usernames[u];
         pulls = userPulls[name].sort(byUpdated);
-        resultHtml += "<div>\n<h3>" + name + " (" + pulls.length + ")</h3>\n<ul>"
         for (i = 0; i < pulls.length; i++) {
-          resultHtml += formatPull(pulls[i]);
-        }
+          let pull = pulls[i];
+          if (i == 0) {
+            resultHtml += '<tr class="' + (stripe == 0 ? "evenish" : "oddish") + '">\n<td>' + name + "</td>\n" +
+              "<td>" + '<a href="' + pull.url + '">' + pull.name + "</a> (" + pull.repo + ")</td>\n" +
+              "<td>" + formatDate(pull.updated_at) + "</td>\n" +
+              "<td>" + pull.author + "</td>\n</tr>\n";
 
-        resultHtml += "</ul></div>\n"
+          } else {
+            resultHtml += '<tr class="' + (stripe == 0 ? "evenish" : "oddish") + '">' + "<td></td><td>" + '<a href="' + pull.url + '">' + pull.name + "</a> (" + pull.repo + ")</td>\n" +
+              "<td>" + formatDate(pull.updated_at) + "</td>\n" +
+              "<td>" + pull.author + "</td>\n</tr>\n";
+          }
+        }
+        stripe = (stripe + 1) % 2;
       }
+        resultHtml += "</tbody></table>\n"
       $("#results").html(resultHtml);
       $('#credentials').hide();
       $('#submit').hide();
