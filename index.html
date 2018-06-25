@@ -168,7 +168,7 @@ window.onload = (function(){
             beforeSend: setAuthorizationHeader,
             success: function(response) {
               response.forEach(function groupUserPulls(pull) {
-                var mainAssignee = pull.assignee ? pull.assignee.login : "[Unassigned]";
+                var mainAssignee = pull.assignee ? pull.assignee.login : "{Unassigned}";
                 var assignees = _.uniq(pull.assignees.concat(pull.requested_reviewers).map(function(a) { return a.login; }));
                 var pullData = {
                   url: pull.html_url,
@@ -178,8 +178,14 @@ window.onload = (function(){
                   assignees: assignees,
                   updated_at: new Date(pull.updated_at),
                 };
+                /** SCRATCH IDEAS
+                  if (pull.review_comments > 0 && pull.requested_reviewers.length == 0) {
+                    go request the list of comments so we can get the full list of assignees
+                    Found at: pull.review_comments_url
+                  }
+                **/
                 if (assignees.length == 0) {
-                  assignees.push("[Unassigned]");
+                  assignees.push("{Unassigned}");
                 }
                 if (pull.user.login.toLowerCase() == username.toLowerCase()) {
                   authoredPulls.push(pullData);
