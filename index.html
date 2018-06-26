@@ -35,9 +35,9 @@
     .date__old {
       color: darkorange;
     }
-/*    .row__name td {
-      border-top: 1px solid gray;
-    }*/
+    td {
+      padding: 5px;
+    }
     .oddish td {
       background-color: white;
     }
@@ -265,7 +265,7 @@ window.onload = (function(){
 
       resultHtml += "<h2>Everyone Else</h2>\n";
       resultHtml += "<table>\n<thead>\n<tr>\n" +
-        "<th>Reviewer</th>\n<th>PR Name</th>\n<th>Updated</th>\n<th>Author</th>\n" +
+        "<th>Reviewer</th>\n<th>Pull Request</th>\n<th>Repo</th>\n<th>Updated</th>\n<th>Author</th>\n" +
         "</tr>\n</thead>\n<tbody>\n";
       usernames = Object.keys(userPulls).sort();
       var stripe = 0;
@@ -274,17 +274,13 @@ window.onload = (function(){
         pulls = userPulls[name].sort(byUpdated);
         for (i = 0; i < pulls.length; i++) {
           let pull = pulls[i];
-          if (i == 0) {
-            resultHtml += '<tr class="' + (stripe == 0 ? "evenish" : "oddish") + '">\n<td>' + name + "</td>\n" +
-              "<td>" + '<a href="' + pull.url + '">' + pull.name + "</a> (" + pull.repo + ")</td>\n" +
-              "<td>" + formatDate(pull.updated_at) + "</td>\n" +
-              "<td>" + pull.author + "</td>\n</tr>\n";
 
-          } else {
-            resultHtml += '<tr class="' + (stripe == 0 ? "evenish" : "oddish") + '">' + "<td></td><td>" + '<a href="' + pull.url + '">' + pull.name + "</a> (" + pull.repo + ")</td>\n" +
+            resultHtml += '<tr class="' + (stripe == 0 ? "evenish" : "oddish") + '">\n' +
+              "<td>" + (i == 0 ? name : "") + "</td>\n" +
+              "<td>" + '<a href="' + pull.url + '">' + pull.name + "</a></td>\n" + 
+              "<td>" + pull.repo + "</td>\n" +
               "<td>" + formatDate(pull.updated_at) + "</td>\n" +
               "<td>" + pull.author + "</td>\n</tr>\n";
-          }
         }
         stripe = (stripe + 1) % 2;
       }
