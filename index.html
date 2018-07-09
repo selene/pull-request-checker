@@ -36,7 +36,12 @@
       color: darkorange;
     }
     td {
-      padding: 5px;
+      padding-right: 5px;
+      padding-left: 5px;
+      padding-bottom: 3px;
+    }
+    .name-row td {
+      padding-top: 6px;
     }
     .oddish td {
       background-color: white;
@@ -275,7 +280,7 @@ window.onload = (function(){
         for (i = 0; i < pulls.length; i++) {
           let pull = pulls[i];
 
-            resultHtml += '<tr class="' + (stripe == 0 ? "evenish" : "oddish") + '">\n' +
+            resultHtml += '<tr class="' + (stripe == 0 ? "evenish" : "oddish") + (i == 0 ? " name-row" : "") + '">\n' +
               "<td>" + (i == 0 ? name : "") + "</td>\n" +
               "<td>" + '<a href="' + pull.url + '">' + pull.name + "</a></td>\n" + 
               "<td>" + pull.repo + "</td>\n" +
