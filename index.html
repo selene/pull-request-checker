@@ -49,6 +49,9 @@
     .evenish td {
       background-color: #ddd;
     }
+    li.updated {
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -248,20 +251,21 @@ window.onload = (function(){
     function onAllReposFinished(userPulls){
       var resultHtml = "";
       var i, u, name, pulls, usernames;
+      var previousLastPRCheck =  lastPRCheck;
       lastPRCheck = new Date();
 
       resultHtml += "<h2>" + username + "</h2>\n"
       resultHtml += "<h3>Your PRs (" + authoredPulls.length +")</h3>\n<ul>\n";
       authoredPulls = authoredPulls.sort(byUpdated);
       for (i = 0; i < authoredPulls.length; i++) {
-        resultHtml += formatPull(authoredPulls[i], true);
+        resultHtml += formatPull(authoredPulls[i], previousLastPRCheck, true);
       }
       resultHtml += "</ul>\n<h3>Your Queue (" + assignedPulls.length + ")</h3>\n"
       if (assignedPulls.length > 0) {
         assignedPulls = assignedPulls.sort(byUpdated);
         resultHtml += "<ul>\n";
         for (i = 0; i < assignedPulls.length; i++) {
-          resultHtml += formatPull(assignedPulls[i]);
+          resultHtml += formatPull(assignedPulls[i], previousLastPRCheck);
         }
         resultHtml += "</ul>\n";
       } else {
@@ -319,8 +323,10 @@ window.onload = (function(){
       return "<small" + (isOld ? ' class="date__old"' : "") + ">"  + datePart + "</small>";
     }
 
-    function formatPull(pull, showAssignee) {
-      var formatted = "<li><a href='" + pull.url + "'>" + pull.name + "</a> (" + pull.repo + ") " + formatDate(pull.updated_at);
+    function formatPull(pull, previousCheckDate, showAssignee) {
+      var updated = previousCheckDate && pull.updated_at > previousCheckDate;
+      var formatted = "<li" + (updated ? " class=\"updated\"" : "") + ">" +
+        "<a href='" + pull.url + "'>" + pull.name + "</a> (" + pull.repo + ") " + formatDate(pull.updated_at);
       if (showAssignee) {
         formatted += " - " + pull.assignees.join(", ");
       } else {
